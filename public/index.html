@@ -115,9 +115,10 @@
     document.querySelector('#refresh').addEventListener('click', loadBooks);
     document.querySelector('#add-book-form').addEventListener('submit', async (event) => {
       event.preventDefault();
+      const form = event.currentTarget;
       notice.className = '';
       notice.textContent = '';
-      const values = new FormData(event.currentTarget);
+      const values = new FormData(form);
       const book = { id: Number(values.get('id')), title: values.get('title').trim(), author: values.get('author').trim(), price: Number(values.get('price')) };
       try {
         const response = await fetch('/add-book', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(book) });
@@ -125,7 +126,7 @@
         if (!response.ok) throw new Error(result.error || 'Unable to add this book.');
         notice.textContent = result.message;
         notice.className = 'success';
-        event.currentTarget.reset();
+        form.reset();
         await loadBooks();
       } catch (error) {
         notice.textContent = error.message;
