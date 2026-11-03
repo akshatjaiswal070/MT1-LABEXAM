@@ -63,4 +63,4 @@ curl -X POST http://localhost:4000/books \
   -d '{"title":"Clean Code","author":"Robert C. Martin","price":550,"category":"Programming"}'
 ```
 
-Data resets to the sample records whenever its server process restarts. The `screenshots/` directory is reserved for screenshots captured during submission testing; add your own real browser and API screenshots there before submission.
+Data resets to the sample records whenever its server process restarts. The `screenshots/` directory includes browser captures of the HTTP home and welcome pages, Express `GET /books` and `GET /books/1`, plus the GitHub commit history. Add the required EchoAPI `GET`, `POST`, `PUT`, and `DELETE` screenshots there after capturing them in EchoAPI.
