@@ -10,9 +10,8 @@ const books = [
 
 app.use(express.json());
 
-function validateBook(body, { requireAllFields = false } = {}) {
+function validateBook(body, { requiredFields = ['title', 'author', 'price'] } = {}) {
   if (!body || typeof body !== 'object' || Array.isArray(body)) return 'Request body must be a JSON object.';
-  const requiredFields = requireAllFields ? ['id', 'title', 'author', 'price', 'category'] : ['title', 'author', 'price'];
   const missingFields = requiredFields.filter((field) => !Object.hasOwn(body, field));
   if (missingFields.length) return `Missing required field(s): ${missingFields.join(', ')}.`;
   if (Object.hasOwn(body, 'title') && (typeof body.title !== 'string' || !body.title.trim())) return 'Title must be a non-empty string.';
@@ -46,8 +45,12 @@ app.put('/books/:id', (request, response) => {
   const id = Number(request.params.id);
   const bookIndex = books.findIndex((item) => item.id === id);
   if (!Number.isInteger(id) || bookIndex === -1) return response.status(404).json({ error: 'Book not found' });
-  const validationError = validateBook(request.body);
+  const validationError = validateBook(request.body, { requiredFields: [] });
   if (validationError) return response.status(400).json({ error: validationError });
+  const editableFields = ['title', 'author', 'price', 'category'];
+  if (!editableFields.some((field) => Object.hasOwn(request.body, field))) {
+    return response.status(400).json({ error: 'Provide at least one field to update: title, author, price, or category.' });
+  }
   const updatedBook = { ...books[bookIndex] };
   for (const field of ['title', 'author', 'price', 'category']) {
     if (Object.hasOwn(request.body, field)) updatedBook[field] = typeof request.body[field] === 'string' ? request.body[field].trim() : request.body[field];
