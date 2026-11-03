@@ -63,4 +63,4 @@ curl -X POST http://localhost:4000/books \
   -d '{"title":"Clean Code","author":"Robert C. Martin","price":550,"category":"Programming"}'
 ```
 
-Data resets to the sample records whenever its server process restarts. The `screenshots/` directory is included for submission evidence.
+Data resets to the sample records whenever its server process restarts. The `screenshots/` directory contains the submitted `http-home.png` browser capture.
