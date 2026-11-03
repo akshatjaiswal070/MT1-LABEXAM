@@ -1,0 +1,15 @@
+{
+  "name": "mt1-labexam",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Library Book Management web application for the Node.js full stack lab examination",
+  "scripts": {
+    "start:http": "node httpServer.js",
+    "start:api": "node expressApp.js",
+    "start": "node expressApp.js"
+  },
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}
