@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Browse and add books to the library collection.">
+  <title>Leaf &amp; Lore | Library</title>
+  <style>
+    :root { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #18312d; background: #f4f7f4; font-synthesis: none; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; }
+    header { padding: 1.1rem max(6vw, 1.5rem); display: flex; justify-content: space-between; align-items: center; gap: 1rem; border-bottom: 1px solid #dce6df; background: #fff; }
+    .brand { font-weight: 750; letter-spacing: -.03em; font-size: 1.15rem; }
+    nav { display: flex; flex-wrap: wrap; gap: 1.25rem; }
+    a { color: #26705d; text-decoration: none; font-weight: 600; }
+    main { max-width: 1040px; padding: 3rem 1.5rem; margin: auto; }
+    .hero { padding: clamp(2rem, 6vw, 3.5rem); background: #e5f1e9; border: 1px solid #d5e6da; border-radius: 24px; }
+    .eyebrow { text-transform: uppercase; letter-spacing: .13em; font-size: .76rem; font-weight: 750; color: #43816d; }
+    h1 { font-size: clamp(2.4rem, 6vw, 4.2rem); letter-spacing: -.06em; line-height: 1.02; max-width: 680px; margin: 1rem 0; }
+    p { line-height: 1.65; color: #566e65; }
+    .hero p { max-width: 620px; }
+    .actions { display: flex; flex-wrap: wrap; gap: .8rem; margin-top: 1.5rem; }
+    .button { display: inline-block; padding: .8rem 1rem; border-radius: 10px; background: #23634f; color: #fff; border: 0; font: inherit; font-weight: 650; cursor: pointer; }
+    .button.secondary { background: #fff; color: #23634f; border: 1px solid #c8ded1; }
+    .section-heading { display: flex; justify-content: space-between; align-items: end; gap: 1rem; margin: 2.5rem 0 1rem; }
+    h2 { font-size: 1.55rem; letter-spacing: -.03em; margin: 0; }
+    .muted { color: #73857d; font-size: .9rem; margin: .35rem 0 0; }
+    .book-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
+    .book { background: white; border: 1px solid #e0e8e1; border-radius: 16px; padding: 1.2rem; }
+    .book h3 { margin: 0 0 .35rem; font-size: 1.05rem; }
+    .book p { margin: .25rem 0; }
+    .price { color: #23634f !important; font-weight: 700; margin-top: .85rem !important; }
+    .add-panel { margin-top: 2.5rem; background: white; border: 1px solid #e0e8e1; border-radius: 18px; padding: clamp(1.2rem, 4vw, 2rem); }
+    form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin-top: 1.2rem; }
+    label { display: grid; gap: .4rem; font-size: .9rem; font-weight: 650; }
+    input { width: 100%; padding: .75rem .8rem; border: 1px solid #cbd8cf; border-radius: 9px; font: inherit; background: #fbfdfb; }
+    form button { justify-self: start; grid-column: 1 / -1; }
+    #notice { min-height: 1.4rem; margin: .8rem 0 0; }
+    #notice.error { color: #a13030; }
+    #notice.success { color: #23634f; }
+    footer { margin-top: 2.5rem; color: #73857d; font-size: .9rem; }
+    @media (max-width: 560px) { header { align-items: flex-start; flex-direction: column; } form { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">Leaf &amp; Lore</div>
+    <nav aria-label="Main navigation"><a href="/">Welcome</a><a href="#collection">Collection</a><a href="/about">About</a><a href="http://localhost:4000/books">Express API</a></nav>
+  </header>
+  <main>
+    <section class="hero">
+      <div class="eyebrow">A little more room to read</div>
+      <h1>Find your next favorite story.</h1>
+      <p>Browse the library collection or add a book to the in-memory catalogue. This page is served from <code>public/index.html</code> by the Node.js FS module.</p>
+      <div class="actions"><a class="button" href="#collection">Browse the collection</a><a class="button secondary" href="/about">About this project</a></div>
+    </section>
+
+    <section id="collection" aria-labelledby="collection-title">
+      <div class="section-heading"><div><h2 id="collection-title">The collection</h2><p class="muted">Books currently held by the HTTP server</p></div><button class="button secondary" id="refresh" type="button">Refresh list</button></div>
+      <div class="book-grid" id="books" aria-live="polite"><p>Loading books…</p></div>
+    </section>
+
+    <section class="add-panel" aria-labelledby="add-title">
+      <h2 id="add-title">Add a book</h2>
+      <p class="muted">All fields are required. New books are stored in memory until the HTTP server restarts.</p>
+      <form id="add-book-form">
+        <label>Book ID<input name="id" type="number" min="1" step="1" required></label>
+        <label>Title<input name="title" type="text" maxlength="120" required></label>
+        <label>Author<input name="author" type="text" maxlength="120" required></label>
+        <label>Price<input name="price" type="number" min="0" step="0.01" required></label>
+        <button class="button" type="submit">Add to collection</button>
+      </form>
+      <p id="notice" role="status" aria-live="polite"></p>
+    </section>
+    <footer>MT1 Lab Examination · Node.js HTTP, FS and Express</footer>
+  </main>
+  <script>
+    const booksContainer = document.querySelector('#books');
+    const notice = document.querySelector('#notice');
+
+    function renderBooks(books) {
+      if (!books.length) {
+        booksContainer.innerHTML = '<p>No books are in the collection yet.</p>';
+        return;
+      }
+      booksContainer.replaceChildren(...books.map((book) => {
+        const card = document.createElement('article');
+        card.className = 'book';
+        const title = document.createElement('h3');
+        title.textContent = book.title;
+        const author = document.createElement('p');
+        author.textContent = `by ${book.author}`;
+        const id = document.createElement('p');
+        id.className = 'muted';
+        id.textContent = `Book ID: ${book.id}`;
+        const price = document.createElement('p');
+        price.className = 'price';
+        price.textContent = `₹${Number(book.price).toFixed(2)}`;
+        card.append(title, author, id, price);
+        return card;
+      }));
+    }
+
+    async function loadBooks() {
+      booksContainer.innerHTML = '<p>Loading books…</p>';
+      try {
+        const response = await fetch('/books');
+        if (!response.ok) throw new Error('Could not load the book collection.');
+        renderBooks(await response.json());
+      } catch (error) {
+        booksContainer.innerHTML = `<p>${error.message} Check that the HTTP server is running.</p>`;
+      }
+    }
+
+    document.querySelector('#refresh').addEventListener('click', loadBooks);
+    document.querySelector('#add-book-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      notice.className = '';
+      notice.textContent = '';
+      const values = new FormData(event.currentTarget);
+      const book = { id: Number(values.get('id')), title: values.get('title').trim(), author: values.get('author').trim(), price: Number(values.get('price')) };
+      try {
+        const response = await fetch('/add-book', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(book) });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Unable to add this book.');
+        notice.textContent = result.message;
+        notice.className = 'success';
+        event.currentTarget.reset();
+        await loadBooks();
+      } catch (error) {
+        notice.textContent = error.message;
+        notice.className = 'error';
+      }
+    });
+
+    loadBooks();
+  </script>
+</body>
+</html>
